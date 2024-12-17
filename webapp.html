@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Jumping Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const gravity = 0.5;
+        const jumpStrength = -12;
+
+        let isJumping = false;
+        let score = 0;
+
+        const player = {
+            x: 50,
+            y: canvas.height - 60,
+            width: 30,
+            height: 30,
+            color: 'blue',
+            dy: 0
+        };
+
+        const obstacles = [];
+        const obstacleFrequency = 1500; // milliseconds
+
+        function createObstacle() {
+            const obstacleHeight = Math.random() * 60 + 20; // Random height between 20 and 80
+            const obstacleWidth = Math.random() * 30 + 20; // Random width between 20 and 50
+            const obstacle = {
+                x: canvas.width,
+                y: canvas.height - obstacleHeight,
+                width: obstacleWidth,
+                height: obstacleHeight,
+                color: 'red',
+                speed: 5
+            };
+            obstacles.push(obstacle);
+        }
+
+        setInterval(createObstacle, obstacleFrequency);
+
+        function drawFootballField() {
+            const stripeHeight = canvas.height / 20;
+            let colors = ['#A7C957', '#6A994E']; // Light green and dark green
+
+            for (let i = 0; i < 20; i++) {
+                ctx.fillStyle = colors[i % 2];
+                ctx.fillRect(0, i * stripeHeight, canvas.width, stripeHeight);
+            }
+        }
+
+        function resetGame() {
+            score = 0;
+            player.y = canvas.height - 60;
+            player.dy = 0;
+            obstacles.length = 0;
+        }
+
+        function drawPlayer() {
+            // Draw player as a football
+            ctx.beginPath();
+            ctx.ellipse(
+                player.x + player.width / 2,
+                player.y + player.height / 2,
+                player.width,
+                player.height / 2,
+                0,
+                0,
+                Math.PI * 2
+            );
+            ctx.fillStyle = player.color;
+            ctx.fill();
+            ctx.closePath();
+
+            // Add "Y" to the player
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Georgia';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Y', player.x + player.width / 2, player.y + player.height / 2);
+        }
+
+        function update() {
+            // Draw football field background
+            drawFootballField();
+
+            // Draw player
+            drawPlayer();
+
+            // Apply gravity
+            player.dy += gravity;
+            player.y += player.dy;
+
+            if (player.y + player.height > canvas.height) {
+                player.y = canvas.height - player.height;
+                isJumping = false;
+            }
+
+            // Draw and update obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                obstacle.x -= obstacle.speed;
+                ctx.fillStyle = obstacle.color;
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+
+                // Add "U" to each obstacle block
+                ctx.fillStyle = 'white';
+                ctx.font = '20px Georgia';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('U', obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2);
+
+                // Check for collision
+                if (
+                    player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y
+                ) {
+                    alert(`Game Over! Your score: ${score}`);
+                    resetGame();
+                }
+
+                // Remove off-screen obstacles
+                if (obstacle.x + obstacle.width < 0) {
+                    obstacles.splice(i, 1);
+                    score++;
+                }
+            }
+
+            // Display score centered
+            ctx.font = '30px Arial';
+            ctx.fillStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'gold';
+            const scoreText = `Score: ${score}`;
+            const textWidth = ctx.measureText(scoreText).width;
+            ctx.fillText(scoreText, (canvas.width - textWidth) / 2, 50);
+            ctx.strokeText(scoreText, (canvas.width - textWidth) / 2, 50);
+
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !isJumping) {
+                player.dy = jumpStrength;
+                isJumping = true;
+            }
+        });
+
+        update();
+    </script>
+</body>
+</html>
+

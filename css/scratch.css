@@ -1,0 +1,16 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font: size 15px;
+    color:black;
+    background-color:lavender;
+    }
+
+.list_headers {
+    font-weight: bold;
+    font-style: normal;
+}
+
+ul {
+    font-weight: normal;
+    font-style: normal;
+}
